@@ -9,8 +9,8 @@
   </div>
   <div>
     <ul>
-      <li v-for="content in contents">
-        {{ content }}
+      <li v-for="file in fileList">
+        {{ file.originFileObj }}
       </li>
     </ul>
   </div>
@@ -29,7 +29,6 @@ function loadText(file: any) {
     contents.value.push(res.target?.result as string);
   };
   reader.readAsText(file);
-  console.log(file);
   return false;
 }
 </script>
