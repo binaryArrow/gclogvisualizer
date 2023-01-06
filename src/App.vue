@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Home from "@/components/Home.vue";
+import FileInput from "@/components/FileInput.vue";
 </script>
 
 <template>
-  <Home />
+  <FileInput />
   <main>
   </main>
 </template>
