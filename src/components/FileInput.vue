@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-upload v-model:file-list="fileList" :show-upload-list="false" name="upload" :before-upload="loadText">
+    <a-upload v-model:file-list="fileList" name="upload" :before-upload="loadText" @remove="removeFile">
       <a-button>
         <upload-outlined></upload-outlined>
         Upload GC log
@@ -10,7 +10,7 @@
   <div>
     <ul>
       <li v-for="file in fileList">
-        {{ file.originFileObj }}
+        {{ file.name }}
       </li>
     </ul>
   </div>
@@ -19,16 +19,18 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { UploadOutlined } from "@ant-design/icons-vue";
+import { contentStore} from "@/stores/store";
 
-const contents = ref<string[]>([]);
-const fileList = ref([]);
+const contents = contentStore()
+const fileList = ref()
 
+// returning false to disable default POST fetch
 function loadText(file: any) {
-  const reader = new FileReader();
-  reader.onload = (res) => {
-    contents.value.push(res.target?.result as string);
-  };
-  reader.readAsText(file);
+  contents.addNewEntry(file)
   return false;
+}
+
+function removeFile(file: any) {
+  contents.removeEntry(file.name)
 }
 </script>

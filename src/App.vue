@@ -1,38 +1,34 @@
+<template>
+  <div class="wrapper">
+    <div class="header">
+      <div class="file-input">
+        <FileInput />
+      </div>
+    </div>
+    <div class="graphs">
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import FileInput from "@/components/FileInput.vue";
 </script>
 
-<template>
-  <FileInput />
-  <main>
-  </main>
-</template>
 
 <style scoped>
-header {
-  line-height: 1.5;
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
 }
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.file-input {
+  grid-column: 1;
 }
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.graphs {
+  width: 1600px;
+  height: 900px;
+  border: 1px solid #afafaf;
+  background: #efefef;
+  border-radius: 8px;
 }
 </style>
