@@ -20,7 +20,7 @@ import Graphs from "@/components/Graphs.vue";
 <style scoped>
 .wrapper {
   display: grid;
-  grid-template-columns: 1fr 1300px;
+  grid-template-columns: 1fr 1450px;
   gap: 30px;
 }
 .file-input {

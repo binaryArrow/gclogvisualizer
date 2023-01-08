@@ -1,11 +1,12 @@
 <template>
-  <div>
-    <a-upload v-model:file-list="fileList" name="upload" :before-upload="loadText" @remove="removeFile">
+  <div id="container">
+    <a-upload v-model:file-list="fileList" :multiple="true" name="upload" :before-upload="loadText" @remove="removeFile">
       <a-button>
         <upload-outlined></upload-outlined>
         Upload GC log
       </a-button>
     </a-upload>
+  <a-button v-if="logFiles.contents.length > 0" class="plot-button" @click="logFiles.createGraphEvent()">STW Graphen erstellen</a-button>
   </div>
 </template>
 
@@ -14,16 +15,22 @@ import { ref } from "vue";
 import { UploadOutlined } from "@ant-design/icons-vue";
 import { contentStore} from "@/stores/content";
 
-const contents = contentStore()
+const logFiles = contentStore()
 const fileList = ref()
 
 // returning false to disable default POST fetch
 function loadText(file: any) {
-  contents.addNewEntry(file)
+  logFiles.addNewEntry(file)
   return false;
 }
 
 function removeFile(file: any) {
-  contents.removeEntry(file.name)
+  logFiles.removeEntry(file.name)
 }
 </script>
+
+<style>
+#container{
+  text-align: center;
+}
+</style>

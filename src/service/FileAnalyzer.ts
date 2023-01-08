@@ -1,12 +1,20 @@
+import { GcContentFile } from "@/models/GcContentFile";
+
 export class FileAnalyzer {
 
-  static readTotalPauseTime(logs: string[]): number | null {
+  static readTotalPauseTime(logs: string[]): GcContentFile | null {
     const GCAlgorithmCheck = logs.slice(0, 10);
     let totalPauseTime: number = 0;
+    let gcName: string = ''
     switch (this.findGCAlgorithm(GCAlgorithmCheck)) {
-      case GCAlgorithms.PARALLEL:
+      case GCAlgorithms.PARALLEL: {
+        totalPauseTime = this.readTotalPauseTimeOfParallelSerialG1GC(logs);
+        gcName = 'Parallel GC'
+        break;
+      }
       case GCAlgorithms.SERIAL: {
         totalPauseTime = this.readTotalPauseTimeOfParallelSerialG1GC(logs);
+        gcName = 'Serial GC'
         break;
       }
       case GCAlgorithms.Z: {
@@ -15,17 +23,19 @@ export class FileAnalyzer {
       }
       case GCAlgorithms.SHENANDOAH: {
         totalPauseTime = this.readTotalPauseTimeOfShenandoahGC(logs)
+        gcName = 'Shenandoah GC'
         break;
       }
       case GCAlgorithms.G1: {
         totalPauseTime = this.readTotalPauseTimeOfParallelSerialG1GC(logs)
+        gcName = 'G1 GC'
         break;
       }
       default:
         return null;
     }
 
-    return totalPauseTime;
+    return new GcContentFile(gcName, totalPauseTime)
   }
 
   static readTotalPauseTimeOfShenandoahGC(logs: string[]): number {

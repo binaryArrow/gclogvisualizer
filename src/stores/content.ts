@@ -16,5 +16,9 @@ export const contentStore = defineStore("content", () => {
   function removeEntry(name: string) {
     logFiles.value = logFiles.value.filter(entry => entry.name != name)
   }
-  return{contents: logFiles, addNewEntry, removeEntry}
+
+  function createGraphEvent(){
+    // just for throwing an event
+  }
+  return{contents: logFiles, addNewEntry, removeEntry, createGraphEvent}
 })
