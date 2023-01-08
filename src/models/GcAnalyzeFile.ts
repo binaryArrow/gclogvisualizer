@@ -1,4 +1,4 @@
-export class GcContentFile {
+export class GcAnalyzeFile {
   gcName: string
   stwTotalTime: number
 

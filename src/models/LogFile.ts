@@ -1,4 +1,4 @@
-export class GcFile {
+export class LogFile {
   name: string
   content: string[]
 

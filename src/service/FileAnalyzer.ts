@@ -1,8 +1,8 @@
-import { GcContentFile } from "@/models/GcContentFile";
+import { GcAnalyzeFile } from "@/models/GcAnalyzeFile";
 
 export class FileAnalyzer {
 
-  static readTotalPauseTime(logs: string[]): GcContentFile | null {
+  static readTotalPauseTime(logs: string[]): GcAnalyzeFile | null {
     const GCAlgorithmCheck = logs.slice(0, 10);
     let totalPauseTime: number = 0;
     let gcName: string = ''
@@ -35,7 +35,7 @@ export class FileAnalyzer {
         return null;
     }
 
-    return new GcContentFile(gcName, totalPauseTime)
+    return new GcAnalyzeFile(gcName, totalPauseTime)
   }
 
   static readTotalPauseTimeOfShenandoahGC(logs: string[]): number {

@@ -1,36 +1,66 @@
 <template>
   <div id="container">
-    <a-upload v-model:file-list="fileList" :multiple="true" name="upload" :before-upload="loadText" @remove="removeFile">
-      <a-button>
-        <upload-outlined></upload-outlined>
-        Upload GC log
+    <div id="gc-log">
+      <a-upload v-model:file-list="fileList" :multiple="true" name="upload" :before-upload="addNewGCLogEntry"
+                @remove="removeGCLogEntry">
+        <a-button>
+          <upload-outlined></upload-outlined>
+          Upload GC log
+        </a-button>
+      </a-upload>
+      <a-button v-if="gcLogFiles.contents.length > 0" class="plot-button" @click="gcLogFiles.createGraphEvent()">STW
+        Graphen erstellen
       </a-button>
-    </a-upload>
-  <a-button v-if="logFiles.contents.length > 0" class="plot-button" @click="logFiles.createGraphEvent()">STW Graphen erstellen</a-button>
+    </div>
+    <div id="request-log">
+      <a-upload v-model:file-list="requestsLogList" :multiple="true" name="uploadRequestLog" :before-upload="addNewRequestLogEntry"
+                @remove="removeRequestLogEntry">
+        <a-button>
+          <upload-outlined></upload-outlined>
+          Upload GC log
+        </a-button>
+      </a-upload>
+      <a-button v-if="requestLogFiles.contents.length > 0" class="plot-button" @click="gcLogFiles.createGraphEvent()">
+        Heatmap erstellen
+      </a-button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { UploadOutlined } from "@ant-design/icons-vue";
-import { contentStore} from "@/stores/content";
+import { gcLogStore, requestLogStore } from "@/stores/globalStore";
 
-const logFiles = contentStore()
-const fileList = ref()
+// for GC logs
+const gcLogFiles = gcLogStore();
+const fileList = ref();
+// for request logs
+const requestLogFiles = requestLogStore();
+const requestsLogList = ref();
 
 // returning false to disable default POST fetch
-function loadText(file: any) {
-  logFiles.addNewEntry(file)
+function addNewGCLogEntry(file: any) {
+  gcLogFiles.addNewEntry(file);
+  return false;
+}
+function addNewRequestLogEntry(file: any) {
+  requestLogFiles.addNewEntry(file);
   return false;
 }
 
-function removeFile(file: any) {
-  logFiles.removeEntry(file.name)
+function removeGCLogEntry(file: any) {
+  gcLogFiles.removeEntry(file.name);
+}
+function removeRequestLogEntry(file: any) {
+  requestLogFiles.removeEntry(file.name);
 }
 </script>
 
 <style>
-#container{
-  text-align: center;
+#container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 15px;
 }
 </style>
