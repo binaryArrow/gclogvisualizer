@@ -6,27 +6,27 @@
       </div>
     </div>
     <div class="graphs">
+      <Graphs></Graphs>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import FileInput from "@/components/FileInput.vue";
+import Graphs from "@/components/Graphs.vue";
 </script>
 
 
 <style scoped>
 .wrapper {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1300px;
   gap: 30px;
 }
 .file-input {
   grid-column: 1;
 }
 .graphs {
-  width: 1600px;
-  height: 900px;
   border: 1px solid #afafaf;
   background: #efefef;
   border-radius: 8px;

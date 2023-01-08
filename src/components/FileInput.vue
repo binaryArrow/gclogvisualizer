@@ -7,19 +7,12 @@
       </a-button>
     </a-upload>
   </div>
-  <div>
-    <ul>
-      <li v-for="file in fileList">
-        {{ file.name }}
-      </li>
-    </ul>
-  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { UploadOutlined } from "@ant-design/icons-vue";
-import { contentStore} from "@/stores/store";
+import { contentStore} from "@/stores/content";
 
 const contents = contentStore()
 const fileList = ref()
