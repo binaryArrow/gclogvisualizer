@@ -8,7 +8,7 @@ export const gcLogStore = defineStore("gcLog", () => {
   function addNewEntry(file: any){
     const reader = new FileReader();
     reader.onload = (res) => {
-      logFiles.value?.push(new LogFile(file.name,(res.target?.result as string).split(/[\r\n]+/g)))
+      logFiles.value?.push(new LogFile(file.name,(res.target?.result as string).split('\n')))
     };
     reader.readAsText(file);
   }
@@ -17,10 +17,30 @@ export const gcLogStore = defineStore("gcLog", () => {
     logFiles.value = logFiles.value.filter(entry => entry.name != name)
   }
 
-  function createGraphEvent(){
+  function moveUp(name: string) {
+    const foundIndex = logFiles.value.findIndex(element => element.name == name)
+    if(foundIndex > 0) {
+      const tempVar = logFiles.value[foundIndex-1]
+      logFiles.value[foundIndex-1] = logFiles.value[foundIndex]
+      logFiles.value[foundIndex] = tempVar
+    }
+  }
+  function moveDown(name:string) {
+    const foundIndex = logFiles.value.findIndex(element => element.name == name)
+    if(foundIndex < logFiles.value.length-1) {
+      const tempVar = logFiles.value[foundIndex+1]
+      logFiles.value[foundIndex+1] = logFiles.value[foundIndex]
+      logFiles.value[foundIndex] = tempVar
+    }
+  }
+
+  function createSTWMaxChart(){
     // just for throwing an event
   }
-  return{contents: logFiles, addNewEntry, removeEntry, createGraphEvent}
+  function lastEntryDeletedEvent() {
+    // event
+  }
+  return{contents: logFiles, addNewEntry, removeEntry, createSTWMaxChart, lastEntryDeletedEvent, moveUp, moveDown}
 })
 
 export const requestLogStore = defineStore("requestLog", () => {
@@ -29,17 +49,37 @@ export const requestLogStore = defineStore("requestLog", () => {
   function addNewEntry(file: any){
     const reader = new FileReader();
     reader.onload = (res) => {
-      requestLogList.value?.push(new LogFile(file.name,(res.target?.result as string).split(/[\r\n]+/g)))
+      requestLogList.value?.push(new LogFile(file.name,(res.target?.result as string).split('\n')))
     };
     reader.readAsText(file);
+  }
+
+  function moveUp(name: string) {
+    const foundIndex = requestLogList.value.findIndex(element => element.name == name)
+    if(foundIndex > 0) {
+      const tempVar = requestLogList.value[foundIndex-1]
+      requestLogList.value[foundIndex-1] = requestLogList.value[foundIndex]
+      requestLogList.value[foundIndex] = tempVar
+    }
+  }
+  function moveDown(name:string) {
+    const foundIndex = requestLogList.value.findIndex(element => element.name == name)
+    if(foundIndex < requestLogList.value.length-1) {
+      const tempVar = requestLogList.value[foundIndex+1]
+      requestLogList.value[foundIndex+1] = requestLogList.value[foundIndex]
+      requestLogList.value[foundIndex] = tempVar
+    }
   }
 
   function removeEntry(name: string) {
     requestLogList.value = requestLogList.value.filter(entry => entry.name != name)
   }
+  function lastEntryDeletedEvent() {
+    // event
+  }
 
-  function createGraphEvent(){
+  function createRequestChart(){
     // just for throwing an event
   }
-  return{contents: requestLogList, addNewEntry, removeEntry, createGraphEvent}
+  return{contents: requestLogList, addNewEntry, removeEntry, createRequestChart, lastEntryDeletedEvent,moveUp, moveDown}
 })

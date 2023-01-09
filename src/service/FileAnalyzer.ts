@@ -1,8 +1,9 @@
-import { GcAnalyzeFile } from "@/models/GcAnalyzeFile";
+import { GcAnalyzedFile } from "@/models/GcAnalyzedFile";
+import { RequestAnalyzedFile } from "@/models/RequestAnalyzedFile";
 
 export class FileAnalyzer {
 
-  static readTotalPauseTime(logs: string[]): GcAnalyzeFile | null {
+  static analyzeGCFile(logs: string[], fileName:string): GcAnalyzedFile | null {
     const GCAlgorithmCheck = logs.slice(0, 10);
     let totalPauseTime: number = 0;
     let gcName: string = ''
@@ -35,7 +36,7 @@ export class FileAnalyzer {
         return null;
     }
 
-    return new GcAnalyzeFile(gcName, totalPauseTime)
+    return new GcAnalyzedFile(gcName, fileName, totalPauseTime)
   }
 
   static readTotalPauseTimeOfShenandoahGC(logs: string[]): number {
@@ -63,7 +64,6 @@ export class FileAnalyzer {
     return Math.round(totalPauseTimes);
   }
 
-
   static findGCAlgorithm(firstTenLogLines: string[]): GCAlgorithms | null {
 
     if (firstTenLogLines.find(line => line.includes("Using Parallel")))
@@ -85,6 +85,15 @@ export class FileAnalyzer {
       return null;
 
   }
+
+  // request stuff
+  static analyzeRequestFile(logs: string[], fileName: string): RequestAnalyzedFile | null {
+    if(!logs[0].includes('RUN'))
+      return null
+
+    return new RequestAnalyzedFile(fileName, [1], [1], [1], [1])
+  }
+
 
 }
 

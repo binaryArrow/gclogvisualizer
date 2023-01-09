@@ -4,48 +4,84 @@
   <!--  </div>-->
   <div id="container">
     <div id="graph"></div>
-    <div id="heatmap"></div>
+    <div id="req-graph"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 
-import { gcLogStore } from "@/stores/globalStore";
+import { gcLogStore, requestLogStore } from "@/stores/globalStore";
 import { onMounted, ref } from "vue";
 import { FileAnalyzer } from "@/service/FileAnalyzer";
 import { message } from "ant-design-vue";
 import * as d3 from "d3";
-import { GcAnalyzeFile } from "@/models/GcAnalyzeFile";
+import { GcAnalyzedFile } from "@/models/GcAnalyzedFile";
+import { RequestAnalyzedFile } from "@/models/RequestAnalyzedFile";
 
 const gcLogFiles = gcLogStore();
-const stwMaxTimes = ref<GcAnalyzeFile[]>([]);
+const gcFilesAnalyzed = ref<GcAnalyzedFile[]>([]);
+
+const requestLogFiles = requestLogStore();
+const requestFilesAnalyzed = ref<RequestAnalyzedFile[]>([])
 
 onMounted(() => {
+  // GC stuff
   gcLogFiles.$onAction((context) => {
-    if (context.name === "createGraphEvent" && stwMaxTimes.value.length > 0) {
-      createHistogram(stwMaxTimes.value.map(it => it.stwTotalTime), stwMaxTimes.value[0].gcName);
-      createHeatMap("test");
+    if (context.name === "createSTWMaxChart" && gcFilesAnalyzed.value.length > 0) {
+      createHistogram(gcFilesAnalyzed.value.map(it => it.stwTotalTime), gcFilesAnalyzed.value[0].gcName);
     }
   });
+  // deleting files
   gcLogFiles.$subscribe((mutation, state) => {
-    if (mutation.type === "direct" && stwMaxTimes.value.length > state.contents.length) {
-      stwMaxTimes.value = [];
+    if (mutation.type === "direct" && gcFilesAnalyzed.value.length > state.contents.length) {
+      gcFilesAnalyzed.value = [];
       fillStwMaxTimes();
     }
-    if (mutation.type === "direct" && stwMaxTimes.value.length < state.contents.length) {
+    if (mutation.type === "direct" && gcFilesAnalyzed.value.length < state.contents.length) {
       const logfileContent = gcLogFiles.contents[gcLogFiles.contents.length - 1].content;
-      if (FileAnalyzer.readTotalPauseTime(logfileContent) !== null)
-        stwMaxTimes.value.push(FileAnalyzer.readTotalPauseTime(logfileContent)!);
-      else message.error("Unknown GC");
+      const logFileName = gcLogFiles.contents[gcLogFiles.contents.length - 1].name;
+      if (FileAnalyzer.analyzeGCFile(logfileContent, logFileName) !== null)
+        gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(logfileContent, logFileName)!);
+      else{
+        message.error("Unknown Garbage Collector Log");
+        gcLogFiles.removeEntry(logFileName)
+        gcLogFiles.lastEntryDeletedEvent()
+      }
     }
   });
-  createHeatMap("test")
+
+  // Heatmap stuff
+  requestLogFiles.$onAction((context) => {
+    if (context.name === "createRequestChart") {
+      createReqChart(
+        [2000, 3000, 4000, 2123, 4399, 5000, 2300, 5000, 2390, 1200],
+        "test"
+      )
+    }
+  });
+  requestLogFiles.$subscribe((mutation, state) => {
+    if (mutation.type === "direct" && requestFilesAnalyzed.value.length < state.contents.length) {
+      const logfileContent = requestLogFiles.contents[requestLogFiles.contents.length - 1].content;
+      const logFileName = requestLogFiles.contents[requestLogFiles.contents.length - 1].name;
+      if (FileAnalyzer.analyzeRequestFile(logfileContent, logFileName) !== null)
+        requestFilesAnalyzed.value.push(FileAnalyzer.analyzeRequestFile(logfileContent, logFileName)!);
+      else {
+        message.error("Unknown File, use Gatling logs!");
+        requestLogFiles.removeEntry(logFileName)
+        requestLogFiles.lastEntryDeletedEvent()
+      }
+    }
+  })
+  createReqChart(
+    [2000, 3000, 4000, 2123, 4399, 5000, 2300, 5000, 2390, 1200],
+    "test"
+  )
 });
 
 function fillStwMaxTimes() {
   gcLogFiles.contents.forEach(contentEntry => {
-    if (FileAnalyzer.readTotalPauseTime(contentEntry.content) !== null)
-      stwMaxTimes.value.push(FileAnalyzer.readTotalPauseTime(contentEntry.content)!);
+    if (FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name) !== null)
+      gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name)!);
     else message.error("Unknown GC");
   });
 }
@@ -112,7 +148,7 @@ function createHistogram(data: number[], gcName: string) {
 
 // Add Y axis
   const y = d3.scaleLinear()
-    .domain([0, d3.max(data)!])
+    .domain([0, d3.max(data)!*2])
     .range([height, 0]);
   svg.append("g")
     .call(d3.axisLeft(y));
@@ -129,28 +165,26 @@ function createHistogram(data: number[], gcName: string) {
 
 }
 
-function createHeatMap(gcName: string) {
-  // set the dimensions and margins of the graph
+function createReqChart(reqData: number[], gcName: string) {
   let margin = { top: 10, right: 30, bottom: 30, left: 40 },
     width = 480 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
 
-// append the svg object to the body of the page
-  let svg = d3.select("#graph")
+  let svg = d3.select("#req-graph")
     .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform",
-      "translate(" + 55 + ")");
+      "translate(" + 80 + ")");
 
   // label x axis
   svg.append("text")
     .attr("class", "x label")
     .attr("text-anchor", "end")
-    .attr("x", width - 150)
+    .attr("x", width / 2)
     .attr("y", 390)
-    .text("Server Response Timeouts")
+    .text("Test Number GC")
     .attr("font-size", 13)
     .attr("fill", "black");
 
@@ -158,11 +192,11 @@ function createHeatMap(gcName: string) {
   svg.append("text")
     .attr("class", "y label")
     .attr("text-anchor", "end")
-    .attr("y", -40)
+    .attr("y", -60)
     .attr("dy", ".50em")
     .attr("x", -100)
     .attr("transform", "rotate(-90)")
-    .text(" Test Number GC")
+    .text(" Max STW Time (ms)")
     .attr("font-size", 13)
     .attr("fill", "black");
 
@@ -170,7 +204,7 @@ function createHeatMap(gcName: string) {
   svg.append("text")
     .attr("class", "gc-name")
     .attr("text-anchor", "end")
-    .attr("y", 415)
+    .attr("y", height)
     .attr("dy", ".50em")
     .attr("x", -250)
     .attr("transform", "rotate(-90)")
@@ -178,53 +212,56 @@ function createHeatMap(gcName: string) {
     .attr("font-size", 15)
     .attr("fill", "black");
 
-// Labels of row and columns
-  const myGroups = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-  const myVars = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10"];
+  const subgroups = 3
 
-// Build X scales and axis:
-  const x = d3.scaleBand()
-    .range([0, width])
-    .domain(myGroups)
-    .padding(0.01);
-  svg.append("g")
-    .attr("transform", `translate(0, ${height})`)
-    .call(d3.axisBottom(x));
+  // // List of groups = species here = value of the first column called group -> I show them on the X axis
+  // const groups = data.map(d => d.group)
+  //
+  // console.log(groups)
+  //
+  // // Add X axis
+  // const x = d3.scaleBand()
+  //   .domain(groups)
+  //   .range([0, width])
+  //   .padding([0.2])
+  // svg.append("g")
+  //   .attr("transform", `translate(0, ${height})`)
+  //   .call(d3.axisBottom(x).tickSize(0));
+  //
+  // // Add Y axis
+  // const y = d3.scaleLinear()
+  //   .domain([0, 40])
+  //   .range([ height, 0 ]);
+  // svg.append("g")
+  //   .call(d3.axisLeft(y));
+  //
+  // // Another scale for subgroup position?
+  // const xSubgroup = d3.scaleBand()
+  //   .domain(subgroups)
+  //   .range([0, x.bandwidth()])
+  //   .padding([0.05])
+  //
+  // // color palette = one color per subgroup
+  // const color = d3.scaleOrdinal()
+  //   .domain(subgroups)
+  //   .range(['#e41a1c','#377eb8','#4daf4a'])
+  //
+  // // Show the bars
+  // svg.append("g")
+  //   .selectAll("g")
+  //   // Enter in data = loop group per group
+  //   .data(data)
+  //   .join("g")
+  //   .attr("transform", d => `translate(${x(d.group)}, 0)`)
+  //   .selectAll("rect")
+  //   .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+  //   .join("rect")
+  //   .attr("x", d => xSubgroup(d.key))
+  //   .attr("y", d => y(d.value))
+  //   .attr("width", xSubgroup.bandwidth())
+  //   .attr("height", d => height - y(d.value))
+  //   .attr("fill", d => color(d.key));
 
-// Build X scales and axis:
-  const y = d3.scaleBand()
-    .range([height, 0])
-    .domain(myVars)
-    .padding(0.01);
-  svg.append("g")
-    .call(d3.axisLeft(y));
-
-// Build color scale
-  const myColor = d3.scaleLinear()
-    .range(["white", "#b60d0d"])
-    .domain([1, 100]);
-
-//Read the data
-  d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/heatmap_data.csv").then(function(data) {
-
-    svg.selectAll()
-      .data(data, function(d) {
-        return d.group + ":" + d.variable;
-      })
-      .join("rect")
-      .attr("x", function(d) {
-        return x(d.group);
-      })
-      .attr("y", function(d) {
-        return y(d.variable);
-      })
-      .attr("width", x.bandwidth())
-      .attr("height", y.bandwidth())
-      .style("fill", function(d) {
-        return myColor(d.value);
-      });
-
-  });
 }
 
 </script>

@@ -31,4 +31,5 @@ import Graphs from "@/components/Graphs.vue";
   background: #efefef;
   border-radius: 8px;
 }
+
 </style>
