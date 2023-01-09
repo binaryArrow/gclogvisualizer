@@ -17,12 +17,13 @@ import { message } from "ant-design-vue";
 import * as d3 from "d3";
 import { GcAnalyzedFile } from "@/models/GcAnalyzedFile";
 import { RequestAnalyzedFile } from "@/models/RequestAnalyzedFile";
+import { Converter } from "@/service/Converter";
 
 const gcLogFiles = gcLogStore();
 const gcFilesAnalyzed = ref<GcAnalyzedFile[]>([]);
 
 const requestLogFiles = requestLogStore();
-const requestFilesAnalyzed = ref<RequestAnalyzedFile[]>([])
+const requestFilesAnalyzed = ref<RequestAnalyzedFile[]>([]);
 
 onMounted(() => {
   // GC stuff
@@ -40,13 +41,13 @@ onMounted(() => {
     if (mutation.type === "direct" && gcFilesAnalyzed.value.length < state.contents.length) {
       const logfileContent = gcLogFiles.contents[gcLogFiles.contents.length - 1].content;
       const logFileName = gcLogFiles.contents[gcLogFiles.contents.length - 1].name;
-      const valid = FileAnalyzer.analyzeGCFile(logfileContent, logFileName)
+      const valid = FileAnalyzer.analyzeGCFile(logfileContent, logFileName);
       if (valid !== null)
         gcFilesAnalyzed.value.push(valid);
-      else{
+      else {
         message.error("Unknown Garbage Collector Log");
-        gcLogFiles.removeEntry(logFileName)
-        gcLogFiles.lastEntryDeletedEvent()
+        gcLogFiles.removeEntry(logFileName);
+        gcLogFiles.lastEntryDeletedEvent();
       }
     }
   });
@@ -54,10 +55,7 @@ onMounted(() => {
   // Heatmap stuff
   requestLogFiles.$onAction((context) => {
     if (context.name === "createRequestChart") {
-      createReqChart(
-        [2000, 3000, 4000, 2123, 4399, 5000, 2300, 5000, 2390, 1200],
-        "test"
-      )
+      createReqChart(Converter.convertForD3Use(requestFilesAnalyzed.value));
     }
   });
   requestLogFiles.$subscribe((mutation, state) => {
@@ -68,20 +66,16 @@ onMounted(() => {
     if (mutation.type === "direct" && requestFilesAnalyzed.value.length < state.contents.length) {
       const logfileContent = requestLogFiles.contents[requestLogFiles.contents.length - 1].content;
       const logFileName = requestLogFiles.contents[requestLogFiles.contents.length - 1].name;
-      const valid = FileAnalyzer.analyzeRequestFile(logfileContent, logFileName)
-      if ( valid !== null)
+      const valid = FileAnalyzer.analyzeRequestFile(logfileContent, logFileName);
+      if (valid !== null)
         requestFilesAnalyzed.value.push(valid);
       else {
         message.error("Unknown File, use Gatling logs!");
-        requestLogFiles.removeEntry(logFileName)
-        requestLogFiles.lastEntryDeletedEvent()
+        requestLogFiles.removeEntry(logFileName);
+        requestLogFiles.lastEntryDeletedEvent();
       }
     }
-  })
-  createReqChart(
-    [2000, 3000, 4000, 2123, 4399, 5000, 2300, 5000, 2390, 1200],
-    "test"
-  )
+  });
 });
 
 function updateAnalyzedGCFiles() {
@@ -90,10 +84,11 @@ function updateAnalyzedGCFiles() {
       gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name)!);
   });
 }
+
 function updateAnalyzedReqFiles() {
   requestLogFiles.contents.forEach(contentEntry => {
-    const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name)
-    if ( valid !== null)
+    const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name);
+    if (valid !== null)
       requestFilesAnalyzed.value.push(valid);
   });
 }
@@ -119,7 +114,7 @@ function createHistogram(data: number[], gcName: string) {
     .attr("x", width / 2)
     .attr("y", 390)
     .text("Test Number GC")
-    .attr("font-size", 13)
+    .attr("font-size", 12)
     .attr("fill", "black");
 
   // label y axis
@@ -130,8 +125,8 @@ function createHistogram(data: number[], gcName: string) {
     .attr("dy", ".50em")
     .attr("x", -100)
     .attr("transform", "rotate(-90)")
-    .text(" Max STW Time (ms)")
-    .attr("font-size", 13)
+    .text("STW Total Time (ms)")
+    .attr("font-size", 12)
     .attr("fill", "black");
 
   // GC name
@@ -160,7 +155,7 @@ function createHistogram(data: number[], gcName: string) {
 
 // Add Y axis
   const y = d3.scaleLinear()
-    .domain([0, d3.max(data)!*2])
+    .domain([0, d3.max(data)! * 2])
     .range([height, 0]);
   svg.append("g")
     .call(d3.axisLeft(y));
@@ -177,7 +172,8 @@ function createHistogram(data: number[], gcName: string) {
 
 }
 
-function createReqChart(reqData: number[], gcName: string) {
+function createReqChart(data: any[]) {
+
   let margin = { top: 10, right: 30, bottom: 30, left: 40 },
     width = 480 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
@@ -187,95 +183,80 @@ function createReqChart(reqData: number[], gcName: string) {
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
-    .attr("transform",
-      "translate(" + 80 + ")");
+    .attr("transform",`translate(60,20)`);
 
-  // label x axis
   svg.append("text")
     .attr("class", "x label")
     .attr("text-anchor", "end")
     .attr("x", width / 2)
-    .attr("y", 390)
-    .text("Test Number GC")
-    .attr("font-size", 13)
+    .attr("y", 380)
+    .text("Test Number")
+    .attr("font-size", 12)
     .attr("fill", "black");
 
   // label y axis
   svg.append("text")
     .attr("class", "y label")
     .attr("text-anchor", "end")
-    .attr("y", -60)
+    .attr("y", -50)
     .attr("dy", ".50em")
     .attr("x", -100)
     .attr("transform", "rotate(-90)")
-    .text(" Max STW Time (ms)")
-    .attr("font-size", 13)
+    .text(" Response Time (ms)")
+    .attr("font-size", 12)
     .attr("fill", "black");
 
-  // GC name
-  svg.append("text")
-    .attr("class", "gc-name")
-    .attr("text-anchor", "end")
-    .attr("y", height)
-    .attr("dy", ".50em")
-    .attr("x", -250)
-    .attr("transform", "rotate(-90)")
-    .text(`${gcName}`)
-    .attr("font-size", 15)
-    .attr("fill", "black");
+  // List of subgroups = header of the csv files = soil condition here
+  const subgroups = ['bestResponses','goodResponses', 'badResponses', 'failedResponses']
 
-  const subgroups = 3
 
-  // // List of groups = species here = value of the first column called group -> I show them on the X axis
-  // const groups = data.map(d => d.group)
-  //
-  // console.log(groups)
-  //
-  // // Add X axis
-  // const x = d3.scaleBand()
-  //   .domain(groups)
-  //   .range([0, width])
-  //   .padding([0.2])
-  // svg.append("g")
-  //   .attr("transform", `translate(0, ${height})`)
-  //   .call(d3.axisBottom(x).tickSize(0));
-  //
-  // // Add Y axis
-  // const y = d3.scaleLinear()
-  //   .domain([0, 40])
-  //   .range([ height, 0 ]);
-  // svg.append("g")
-  //   .call(d3.axisLeft(y));
-  //
-  // // Another scale for subgroup position?
-  // const xSubgroup = d3.scaleBand()
-  //   .domain(subgroups)
-  //   .range([0, x.bandwidth()])
-  //   .padding([0.05])
-  //
-  // // color palette = one color per subgroup
-  // const color = d3.scaleOrdinal()
-  //   .domain(subgroups)
-  //   .range(['#e41a1c','#377eb8','#4daf4a'])
-  //
-  // // Show the bars
-  // svg.append("g")
-  //   .selectAll("g")
-  //   // Enter in data = loop group per group
-  //   .data(data)
-  //   .join("g")
-  //   .attr("transform", d => `translate(${x(d.group)}, 0)`)
-  //   .selectAll("rect")
-  //   .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
-  //   .join("rect")
-  //   .attr("x", d => xSubgroup(d.key))
-  //   .attr("y", d => y(d.value))
-  //   .attr("width", xSubgroup.bandwidth())
-  //   .attr("height", d => height - y(d.value))
-  //   .attr("fill", d => color(d.key));
+  // List of groups = species here = value of the first column called group -> I show them on the X axis
+  const groups = data.map(d => d.index)
 
+  // Add X axis
+  const x = d3.scaleBand()
+    .domain(groups)
+    .range([0, width])
+    .padding(0.2)
+  svg.append("g")
+    .attr("transform", `translate(0, ${height})`)
+    .call(d3.axisBottom(x).tickSize(0));
+
+  const maxCount = Math.max(...requestFilesAnalyzed.value.map(it => it.returnMaxPropCount()))
+  // Add Y axis
+  const y = d3.scaleLinear()
+    .domain([0, maxCount])
+    .range([ height, 0 ]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // Another scale for subgroup position?
+  const xSubgroup = d3.scaleBand()
+    .domain(subgroups)
+    .range([0, x.bandwidth()])
+    .padding(0.05)
+
+  // color palette = one color per subgroup
+  const color = d3.scaleOrdinal()
+    .domain(subgroups)
+    .range(['#6ca142','#e0d558','#e59058', '#ea4a4a'])
+
+  // Show the bars
+  svg.append("g")
+    .selectAll("g")
+    // Enter in data = loop group per group
+    .data(data)
+    .join("g")
+    .attr("transform", d => `translate(${x(d.index)}, 0)`)
+    .selectAll("rect")
+    .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+    .join("rect")
+    .attr("x", d => xSubgroup(d.key)!)
+    .attr("y", d => y(d.value))
+    .attr("width", xSubgroup.bandwidth())
+    .attr("height", d => height - y(d.value))
+    .attr("fill", d => color(d.key));
 }
-
 </script>
 
 <style scoped>

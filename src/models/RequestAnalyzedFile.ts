@@ -9,6 +9,8 @@ export class RequestAnalyzedFile {
 
   failedResponses: number;
 
+  index = 0
+
   constructor(
     filename: string,
     bestResponses: number,
@@ -23,7 +25,7 @@ export class RequestAnalyzedFile {
     this.failedResponses = failedResponses;
   }
 
-  toCSVString(): string{
-    return ""
+  returnMaxPropCount(): number {
+    return Math.max(this.bestResponses, this.goodResponses, this.badResponses, this.failedResponses)
   }
 }
