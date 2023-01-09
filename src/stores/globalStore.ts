@@ -34,13 +34,13 @@ export const gcLogStore = defineStore("gcLog", () => {
     }
   }
 
-  function createSTWMaxChart(){
+  function createTotalStwChart(){
     // just for throwing an event
   }
   function lastEntryDeletedEvent() {
     // event
   }
-  return{contents: logFiles, addNewEntry, removeEntry, createSTWMaxChart, lastEntryDeletedEvent, moveUp, moveDown}
+  return{contents: logFiles, addNewEntry, removeEntry, createTotalStwChart, lastEntryDeletedEvent, moveUp, moveDown}
 })
 
 export const requestLogStore = defineStore("requestLog", () => {

@@ -90,8 +90,23 @@ export class FileAnalyzer {
   static analyzeRequestFile(logs: string[], fileName: string): RequestAnalyzedFile | null {
     if(!logs[0].includes('RUN'))
       return null
+    const relevantOKLogs = logs.filter(line => line.includes('OK'))
+    const relevantKOLogs = logs.filter(line => line.includes('KO'))
+    let bestResponses = 0
+    let goodResponses = 0
+    let badResponses = 0
 
-    return new RequestAnalyzedFile(fileName, [1], [1], [1], [1])
+    relevantOKLogs.forEach(line => {
+      // split by tab
+      const splitLine = line.split(/\t/)
+      const timeDiff = parseInt(splitLine[4]) - parseInt(splitLine[3])
+      if(timeDiff < 800)
+        bestResponses++
+      else if(timeDiff < 1200)
+        goodResponses++
+      else badResponses ++;
+    })
+    return new RequestAnalyzedFile(fileName, bestResponses,goodResponses, badResponses, relevantKOLogs.length)
   }
 
 

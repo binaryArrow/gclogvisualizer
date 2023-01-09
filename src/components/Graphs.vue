@@ -27,7 +27,7 @@ const requestFilesAnalyzed = ref<RequestAnalyzedFile[]>([])
 onMounted(() => {
   // GC stuff
   gcLogFiles.$onAction((context) => {
-    if (context.name === "createSTWMaxChart" && gcFilesAnalyzed.value.length > 0) {
+    if (context.name === "createTotalStwChart" && gcFilesAnalyzed.value.length > 0) {
       createHistogram(gcFilesAnalyzed.value.map(it => it.stwTotalTime), gcFilesAnalyzed.value[0].gcName);
     }
   });
@@ -35,13 +35,14 @@ onMounted(() => {
   gcLogFiles.$subscribe((mutation, state) => {
     if (mutation.type === "direct" && gcFilesAnalyzed.value.length > state.contents.length) {
       gcFilesAnalyzed.value = [];
-      fillStwMaxTimes();
+      updateAnalyzedGCFiles();
     }
     if (mutation.type === "direct" && gcFilesAnalyzed.value.length < state.contents.length) {
       const logfileContent = gcLogFiles.contents[gcLogFiles.contents.length - 1].content;
       const logFileName = gcLogFiles.contents[gcLogFiles.contents.length - 1].name;
-      if (FileAnalyzer.analyzeGCFile(logfileContent, logFileName) !== null)
-        gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(logfileContent, logFileName)!);
+      const valid = FileAnalyzer.analyzeGCFile(logfileContent, logFileName)
+      if (valid !== null)
+        gcFilesAnalyzed.value.push(valid);
       else{
         message.error("Unknown Garbage Collector Log");
         gcLogFiles.removeEntry(logFileName)
@@ -60,11 +61,16 @@ onMounted(() => {
     }
   });
   requestLogFiles.$subscribe((mutation, state) => {
+    if (mutation.type === "direct" && requestFilesAnalyzed.value.length > state.contents.length) {
+      requestFilesAnalyzed.value = [];
+      updateAnalyzedReqFiles();
+    }
     if (mutation.type === "direct" && requestFilesAnalyzed.value.length < state.contents.length) {
       const logfileContent = requestLogFiles.contents[requestLogFiles.contents.length - 1].content;
       const logFileName = requestLogFiles.contents[requestLogFiles.contents.length - 1].name;
-      if (FileAnalyzer.analyzeRequestFile(logfileContent, logFileName) !== null)
-        requestFilesAnalyzed.value.push(FileAnalyzer.analyzeRequestFile(logfileContent, logFileName)!);
+      const valid = FileAnalyzer.analyzeRequestFile(logfileContent, logFileName)
+      if ( valid !== null)
+        requestFilesAnalyzed.value.push(valid);
       else {
         message.error("Unknown File, use Gatling logs!");
         requestLogFiles.removeEntry(logFileName)
@@ -78,11 +84,17 @@ onMounted(() => {
   )
 });
 
-function fillStwMaxTimes() {
+function updateAnalyzedGCFiles() {
   gcLogFiles.contents.forEach(contentEntry => {
     if (FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name) !== null)
       gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name)!);
-    else message.error("Unknown GC");
+  });
+}
+function updateAnalyzedReqFiles() {
+  requestLogFiles.contents.forEach(contentEntry => {
+    const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name)
+    if ( valid !== null)
+      requestFilesAnalyzed.value.push(valid);
   });
 }
 

@@ -23,7 +23,7 @@
           </a>
         </div>
       </div>
-      <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="gcLogFiles.createSTWMaxChart()">
+      <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="gcLogFiles.createTotalStwChart()">
         STW Graph erstellen
       </a-button>
     </div>

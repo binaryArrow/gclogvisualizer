@@ -1,24 +1,24 @@
 export class RequestAnalyzedFile {
   filename: string;
   // x < 800ms
-  bestResponses: number[];
+  bestResponses: number;
   // 800ms <= x < 1200ms
-  okResponses: number[];
+  goodResponses: number;
   //  x >= 1200ms
-  badResponses: number[];
+  badResponses: number;
 
-  failedResponses: number[];
+  failedResponses: number;
 
   constructor(
     filename: string,
-    bestResponses: number[],
-    okResponses: number[],
-    badResponses: number[],
-    failedResponses: number[]
+    bestResponses: number,
+    goodResponses: number,
+    badResponses: number,
+    failedResponses: number
   ) {
     this.filename = filename;
     this.bestResponses = bestResponses;
-    this.okResponses = okResponses;
+    this.goodResponses = goodResponses;
     this.badResponses = badResponses;
     this.failedResponses = failedResponses;
   }
