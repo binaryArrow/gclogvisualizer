@@ -98,16 +98,17 @@ export const gcLogStore = defineStore("gcLog", () => {
     // just for throwing an event
   }
 
-  function lastEntryDeletedEvent() {
-    // event
+  function deleteAll(){
+    logFiles.value.splice(0, logFiles.value.length)
   }
+
 
   return {
     contents: logFiles,
     addNewEntry,
     removeEntry,
     createTotalStwChart,
-    lastEntryDeletedEvent,
+    deleteAll,
     activate,
     swapGC,
     moveUp,
@@ -210,8 +211,8 @@ export const requestLogStore = defineStore("requestLog", () => {
 
   }
 
-  function lastEntryDeletedEvent() {
-    // event
+  function deleteAll(){
+    requestLogList.value.splice(0, requestLogList.value.length)
   }
 
   function createRequestChart() {
@@ -223,7 +224,7 @@ export const requestLogStore = defineStore("requestLog", () => {
     addNewEntry,
     removeEntry,
     createRequestChart,
-    lastEntryDeletedEvent,
+    deleteAll,
     swapRequestLogFiles,
     actives,
     moveUp,

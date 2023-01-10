@@ -28,70 +28,41 @@ const requestFilesAnalyzed = ref<RequestAnalyzedFile[]>([]);
 onMounted(() => {
   // GC stuff
   gcLogFiles.$onAction((context) => {
-    if (context.name === "createTotalStwChart" && gcFilesAnalyzed.value.length > 0) {
-      createHistogram(gcFilesAnalyzed.value.map(it => it.stwTotalTime), gcFilesAnalyzed.value[0].gcName);
-    }
-  });
-  // deleting files
-  gcLogFiles.$subscribe((mutation, state) => {
-    if (mutation.type === "direct" && gcFilesAnalyzed.value.length > state.contents.length) {
+    if (context.name === "createTotalStwChart") {
       gcFilesAnalyzed.value = [];
-      updateAnalyzedGCFiles();
-    }
-    if (mutation.type === "direct" && gcFilesAnalyzed.value.length < state.contents.length) {
-      const logfileContent = gcLogFiles.contents[gcLogFiles.contents.length - 1].content;
-      const logFileName = gcLogFiles.contents[gcLogFiles.contents.length - 1].name;
-      const valid = FileAnalyzer.analyzeGCFile(logfileContent, logFileName);
-      if (valid !== null)
-        gcFilesAnalyzed.value.push(valid);
-      else {
-        message.error("Unknown Garbage Collector Log");
-        gcLogFiles.removeEntry(logFileName);
-        gcLogFiles.lastEntryDeletedEvent();
-      }
+      let failed = false;
+      gcLogFiles.contents.forEach(contentEntry => {
+        if (FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name) !== null)
+          gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name)!);
+        else {
+          message.error(`Unknown Garbage Collector Log of ${contentEntry.name}`);
+          failed = true;
+        }
+      });
+      if (!failed)
+        createHistogram(gcFilesAnalyzed.value.map(it => it.stwTotalTime), gcFilesAnalyzed.value[0].gcName);
     }
   });
 
-  // Heatmap stuff
+  // graph stuff
   requestLogFiles.$onAction((context) => {
     if (context.name === "createRequestChart") {
-      createReqChart(Converter.convertForD3Use(requestFilesAnalyzed.value));
-    }
-  });
-  requestLogFiles.$subscribe((mutation, state) => {
-    if (mutation.type === "direct" && requestFilesAnalyzed.value.length > state.contents.length) {
       requestFilesAnalyzed.value = [];
-      updateAnalyzedReqFiles();
-    }
-    if (mutation.type === "direct" && requestFilesAnalyzed.value.length < state.contents.length) {
-      const logfileContent = requestLogFiles.contents[requestLogFiles.contents.length - 1].content;
-      const logFileName = requestLogFiles.contents[requestLogFiles.contents.length - 1].name;
-      const valid = FileAnalyzer.analyzeRequestFile(logfileContent, logFileName);
-      if (valid !== null)
-        requestFilesAnalyzed.value.push(valid);
-      else {
-        message.error("Unknown File, use Gatling logs!");
-        requestLogFiles.removeEntry(logFileName);
-        requestLogFiles.lastEntryDeletedEvent();
-      }
+      let failed = false;
+      requestLogFiles.contents.forEach(contentEntry => {
+        const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name);
+        if (valid !== null)
+          requestFilesAnalyzed.value.push(valid);
+        else {
+          message.error(`Unknown File ${contentEntry.name}, use Gatling Logs`);
+          failed = true;
+        }
+      });
+      if (!failed)
+        createReqChart(Converter.convertForD3Use(requestFilesAnalyzed.value));
     }
   });
 });
-
-function updateAnalyzedGCFiles() {
-  gcLogFiles.contents.forEach(contentEntry => {
-    if (FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name) !== null)
-      gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name)!);
-  });
-}
-
-function updateAnalyzedReqFiles() {
-  requestLogFiles.contents.forEach(contentEntry => {
-    const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name);
-    if (valid !== null)
-      requestFilesAnalyzed.value.push(valid);
-  });
-}
 
 function createHistogram(data: number[], gcName: string) {
   // svg attributes
@@ -183,7 +154,7 @@ function createReqChart(data: any[]) {
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
-    .attr("transform",`translate(60,20)`);
+    .attr("transform", `translate(60,20)`);
 
   svg.append("text")
     .attr("class", "x label")
@@ -207,26 +178,26 @@ function createReqChart(data: any[]) {
     .attr("fill", "black");
 
   // List of subgroups = header of the csv files = soil condition here
-  const subgroups = ['bestResponses','goodResponses', 'badResponses', 'failedResponses']
+  const subgroups = ["bestResponses", "goodResponses", "badResponses", "failedResponses"];
 
 
   // List of groups = species here = value of the first column called group -> I show them on the X axis
-  const groups = data.map(d => d.index)
+  const groups = data.map(d => d.index);
 
   // Add X axis
   const x = d3.scaleBand()
     .domain(groups)
     .range([0, width])
-    .padding(0.2)
+    .padding(0.2);
   svg.append("g")
     .attr("transform", `translate(0, ${height})`)
     .call(d3.axisBottom(x).tickSize(0));
 
-  const maxCount = Math.max(...requestFilesAnalyzed.value.map(it => it.returnMaxPropCount()))
+  const maxCount = Math.max(...requestFilesAnalyzed.value.map(it => it.returnMaxPropCount()));
   // Add Y axis
   const y = d3.scaleLinear()
     .domain([0, maxCount])
-    .range([ height, 0 ]);
+    .range([height, 0]);
   svg.append("g")
     .call(d3.axisLeft(y));
 
@@ -234,12 +205,12 @@ function createReqChart(data: any[]) {
   const xSubgroup = d3.scaleBand()
     .domain(subgroups)
     .range([0, x.bandwidth()])
-    .padding(0.05)
+    .padding(0.05);
 
   // color palette = one color per subgroup
   const color = d3.scaleOrdinal()
     .domain(subgroups)
-    .range(['#6ca142','#e0d558','#e59058', '#ea4a4a'])
+    .range(["#6ca142", "#e0d558", "#e59058", "#ea4a4a"]);
 
   // Show the bars
   svg.append("g")
@@ -249,13 +220,17 @@ function createReqChart(data: any[]) {
     .join("g")
     .attr("transform", d => `translate(${x(d.index)}, 0)`)
     .selectAll("rect")
-    .data(function(d) { return subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+    .data(function(d) {
+      return subgroups.map(function(key) {
+        return { key: key, value: d[key] };
+      });
+    })
     .join("rect")
     .attr("x", d => xSubgroup(d.key)!)
     .attr("y", d => y(d.value))
     .attr("width", xSubgroup.bandwidth())
     .attr("height", d => height - y(d.value))
-    .attr("fill", d => color(d.key));
+    .attr("fill", d => color(d.key) as string);
 }
 </script>
 

@@ -26,7 +26,10 @@
         </div>
       </div>
       <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="gcLogFiles.createTotalStwChart()">
-        STW Graph erstellen
+        Create STW Graph
+      </a-button>
+      <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="gcLogFiles.deleteAll()">
+        Delete All
       </a-button>
     </div>
     <div id="request-log">
@@ -56,7 +59,10 @@
       </div>
       <a-button v-if="requestLogFiles.contents.length > 0 " class="plot-button"
                 @click="requestLogFiles.createRequestChart()">
-        Response Graph erstellen
+        Create Response Graph
+      </a-button>
+      <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="requestLogFiles.deleteAll()">
+        Delete All
       </a-button>
     </div>
   </div>
@@ -75,17 +81,6 @@ const fileList = ref();
 const requestLogFiles = requestLogStore();
 const requestsLogList = ref();
 
-
-onMounted(() => {
-  gcLogFiles.$onAction((context) => {
-    if (context.name === "lastEntryDeletedEvent")
-      fileList.value.pop();
-  });
-  requestLogFiles.$onAction((context) => {
-    if (context.name === "lastEntryDeletedEvent")
-      requestsLogList.value.pop();
-  });
-});
 
 // returning false to disable default POST fetch
 // GC LOG STUFF
