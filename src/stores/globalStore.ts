@@ -50,10 +50,10 @@ export const gcLogStore = defineStore("gcLog", () => {
       const foundIndex2 = swapFiles[1].index
 
       const temp = logFiles.value[foundIndex1];
-      // swap first file
+
       logFiles.value[foundIndex1] = logFiles.value[foundIndex2];
       logFiles.value[foundIndex1].index = foundIndex1
-      // swap second file
+
       logFiles.value[foundIndex2] = temp;
       logFiles.value[foundIndex2].index = foundIndex2
 
@@ -68,7 +68,29 @@ export const gcLogStore = defineStore("gcLog", () => {
         cursor: "pointer",
         "background-color": "#dad5d5"
       };
+    }
+  }
 
+  function moveUp(index: number) {
+    if(index > 0) {
+      const tempVar = logFiles.value[index-1]
+      logFiles.value[index-1] = logFiles.value[index]
+      logFiles.value[index-1].index = index-1
+
+      logFiles.value[index] = tempVar
+      logFiles.value[index].index = index
+
+    }
+  }
+
+  function moveDown(index: number) {
+    if(index < logFiles.value.length - 1) {
+      const tempVar = logFiles.value[index+1]
+      logFiles.value[index+1] = logFiles.value[index]
+      logFiles.value[index+1].index = index+1
+
+      logFiles.value[index] = tempVar
+      logFiles.value[index].index = index
     }
   }
 
@@ -88,6 +110,8 @@ export const gcLogStore = defineStore("gcLog", () => {
     lastEntryDeletedEvent,
     activate,
     swapGC,
+    moveUp,
+    moveDown,
     actives
   };
 });
@@ -155,6 +179,28 @@ export const requestLogStore = defineStore("requestLog", () => {
 
     }
   }
+  function moveUp(index: number) {
+    if(index > 0) {
+      const tempVar = requestLogList.value[index-1]
+      requestLogList.value[index-1] = requestLogList.value[index]
+      requestLogList.value[index-1].index = index-1
+
+      requestLogList.value[index] = tempVar
+      requestLogList.value[index].index = index
+
+    }
+  }
+
+  function moveDown(index: number) {
+    if(index < requestLogList.value.length - 1) {
+      const tempVar = requestLogList.value[index+1]
+      requestLogList.value[index+1] = requestLogList.value[index]
+      requestLogList.value[index+1].index = index+1
+
+      requestLogList.value[index] = tempVar
+      requestLogList.value[index].index = index
+    }
+  }
 
   function removeEntry(index: number) {
     requestLogList.value.splice(index, 1)
@@ -180,6 +226,8 @@ export const requestLogStore = defineStore("requestLog", () => {
     lastEntryDeletedEvent,
     swapRequestLogFiles,
     actives,
+    moveUp,
+    moveDown,
     activate
   };
 });

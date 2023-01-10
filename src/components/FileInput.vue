@@ -11,11 +11,16 @@
       </a-upload>
       <div v-if="gcLogFiles.contents.length > 0 " v-for="content of gcLogFiles.contents">
         <div id="log-file-element-container">
+          {{content.index + 1 }}
           <div id="log-file-element" :style="content.style" @click="activateGCLogfileForSwap(content.index)">
-            {{ content.index + 1 }}-{{ content.name }}
+            {{ content.name }}
           </div>
           <font-awesome-icon v-if="content.active && gcLogFiles.actives === 2" id="swap"
                              :icon="['fas', 'repeat']" @click="swapGCs" />
+          <font-awesome-icon v-if="gcLogFiles.actives === 0" id="delete" :icon="['fas', 'arrow-down']"
+                             @click="moveGcDown(content.index)" />
+          <font-awesome-icon v-if="gcLogFiles.actives === 0" id="delete" :icon="['fas', 'arrow-up']"
+                             @click="moveGcLogUp(content.index)" />
           <font-awesome-icon v-if="gcLogFiles.actives === 0" id="delete" :icon="['fas', 'trash']"
                              @click="removeGCLogEntry(content.index)" />
         </div>
@@ -35,11 +40,18 @@
       </a-upload>
       <div v-if="requestLogFiles.contents.length > 0 " v-for="content of requestLogFiles.contents">
         <div id="log-file-element-container">
+          {{ content.index + 1 }}
           <div id="log-file-element" :style="content.style" @click="activateRequestLogFileForSwap(content.index)">
-            {{content.index + 1}} - {{ content.name }}
+          {{ content.name }}
           </div>
-          <font-awesome-icon v-if="content.active && requestLogFiles.actives === 2" id="swap" :icon="['fas', 'repeat']" @click="swapRequests()" />
-          <font-awesome-icon v-if="requestLogFiles.actives === 0" id="delete" :icon="['fas', 'trash']" @click="removeRequestLogEntry(content.index)" />
+          <font-awesome-icon v-if="content.active && requestLogFiles.actives === 2" id="swap" :icon="['fas', 'repeat']"
+                             @click="swapRequests()" />
+          <font-awesome-icon v-if="requestLogFiles.actives === 0" id="delete" :icon="['fas', 'arrow-down']"
+                             @click="moveRequestlogDown(content.index)" />
+          <font-awesome-icon v-if="requestLogFiles.actives === 0" id="delete" :icon="['fas', 'arrow-up']"
+                             @click="moveRequestLogUp(content.index)" />
+          <font-awesome-icon v-if="requestLogFiles.actives === 0" id="delete" :icon="['fas', 'trash']"
+                             @click="removeRequestLogEntry(content.index)" />
         </div>
       </div>
       <a-button v-if="requestLogFiles.contents.length > 0 " class="plot-button"
@@ -94,6 +106,15 @@ function swapGCs() {
   gcLogFiles.swapGC();
 }
 
+function moveGcLogUp(index: number) {
+  gcLogFiles.moveUp(index);
+}
+
+function moveGcDown(index: number) {
+  gcLogFiles.moveDown(index)
+}
+
+
 // Request log stuff
 function addNewRequestLogEntry(file: any) {
   requestLogFiles.addNewEntry(file);
@@ -103,6 +124,7 @@ function addNewRequestLogEntry(file: any) {
 function removeRequestLogEntry(index: number) {
   requestLogFiles.removeEntry(index);
 }
+
 function activateRequestLogFileForSwap(index: number) {
   requestLogFiles.activate(index);
 }
@@ -110,6 +132,15 @@ function activateRequestLogFileForSwap(index: number) {
 function swapRequests() {
   requestLogFiles.swapRequestLogFiles();
 }
+
+function moveRequestLogUp(index: number) {
+  requestLogFiles.moveUp(index);
+}
+
+function moveRequestlogDown(index: number) {
+  requestLogFiles.moveDown(index)
+}
+
 
 </script>
 
@@ -139,6 +170,7 @@ function swapRequests() {
   cursor: pointer;
   color: #40a9ff;
   padding-top: 14px;
+  padding-left: 2px;
 }
 
 #swap:hover, #delete:hover {
