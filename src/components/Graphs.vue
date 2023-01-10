@@ -39,8 +39,10 @@ onMounted(() => {
           failed = true;
         }
       });
-      if (!failed)
-        createHistogram(gcFilesAnalyzed.value.map(it => it.stwTotalTime), gcFilesAnalyzed.value[0].gcName);
+      if (!failed) {
+        createHistogram(gcFilesAnalyzed.value.sort((a,b)=>a.sortNumber - b.sortNumber).map(it => it.stwTotalTime),
+          gcFilesAnalyzed.value.sort((a,b)=>a.sortNumber - b.sortNumber).map(it => it.gcName));
+      }
     }
   });
 
@@ -64,7 +66,7 @@ onMounted(() => {
   });
 });
 
-function createHistogram(data: number[], gcName: string) {
+function createHistogram(data: number[], gcName: string[]) {
   // svg attributes
   let margin = { top: 10, right: 30, bottom: 30, left: 40 },
     width = 480 - margin.left - margin.right,
@@ -100,18 +102,6 @@ function createHistogram(data: number[], gcName: string) {
     .attr("font-size", 12)
     .attr("fill", "black");
 
-  // GC name
-  svg.append("text")
-    .attr("class", "gc-name")
-    .attr("text-anchor", "end")
-    .attr("y", height)
-    .attr("dy", ".50em")
-    .attr("x", -250)
-    .attr("transform", "rotate(-90)")
-    .text(`${gcName}`)
-    .attr("font-size", 15)
-    .attr("fill", "black");
-
 
   // x axis
   const x = d3.scaleBand()
@@ -126,7 +116,7 @@ function createHistogram(data: number[], gcName: string) {
 
 // Add Y axis
   const y = d3.scaleLinear()
-    .domain([0, d3.max(data)! * 2])
+    .domain([0, d3.max(data)! * 1.5])
     .range([height, 0]);
   svg.append("g")
     .call(d3.axisLeft(y));
@@ -139,7 +129,20 @@ function createHistogram(data: number[], gcName: string) {
     .attr("y", d => y(d))
     .attr("width", x.bandwidth() - 1)
     .attr("height", d => height - y(d))
-    .attr("fill", "#488c7d");
+    .attr("fill", (d, index) => {
+      switch (gcName[index]) {
+        case "Parallel GC":
+          return "#488c7d";
+        case "Serial GC":
+          return "#598c48";
+        case "Shenandoah GC":
+          return "#69488c";
+        case "G1 GC":
+          return "#48588c";
+        default:
+          return "#c99652";
+      }
+    });
 
 }
 
@@ -173,7 +176,7 @@ function createReqChart(data: any[]) {
     .attr("dy", ".50em")
     .attr("x", -100)
     .attr("transform", "rotate(-90)")
-    .text(" Response Time (ms)")
+    .text("Responses")
     .attr("font-size", 12)
     .attr("fill", "black");
 
@@ -193,7 +196,7 @@ function createReqChart(data: any[]) {
     .attr("transform", `translate(0, ${height})`)
     .call(d3.axisBottom(x).tickSize(0));
 
-  const maxCount = Math.max(...requestFilesAnalyzed.value.map(it => it.returnMaxPropCount()));
+  const maxCount = requestFilesAnalyzed.value[0].returnTotalReqCount();
   // Add Y axis
   const y = d3.scaleLinear()
     .domain([0, maxCount])

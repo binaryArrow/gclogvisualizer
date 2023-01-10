@@ -20,6 +20,7 @@ export class FileAnalyzer {
       }
       case GCAlgorithms.Z: {
         console.log('Z');
+        totalPauseTime = this.readTotalPauseTimeOfShenandoahGC(logs)
         break;
       }
       case GCAlgorithms.SHENANDOAH: {

@@ -12,15 +12,15 @@
 </template>
 
 <script setup lang="ts">
-import FileInput from "@/components/FileInput.vue";
 import Graphs from "@/components/Graphs.vue";
+import FileInput from "@/components/FileInput.vue";
 </script>
 
 
 <style scoped>
 .wrapper {
   display: grid;
-  grid-template-columns: 1fr 1450px;
+  grid-template-columns: 1fr 1500px;
   gap: 30px;
 }
 .file-input {

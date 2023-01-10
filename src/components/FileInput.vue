@@ -61,7 +61,7 @@
                 @click="requestLogFiles.createRequestChart()">
         Create Response Graph
       </a-button>
-      <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="requestLogFiles.deleteAll()">
+      <a-button v-if="requestLogFiles.contents.length > 0 " class="plot-button" @click="requestLogFiles.deleteAll()">
         Delete All
       </a-button>
     </div>
@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { UploadOutlined } from "@ant-design/icons-vue";
 import { gcLogStore, requestLogStore } from "@/stores/globalStore";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";

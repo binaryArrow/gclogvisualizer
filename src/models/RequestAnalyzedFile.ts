@@ -28,4 +28,8 @@ export class RequestAnalyzedFile {
   returnMaxPropCount(): number {
     return Math.max(this.bestResponses, this.goodResponses, this.badResponses, this.failedResponses)
   }
+
+  returnTotalReqCount(): number{
+    return this.bestResponses + this.goodResponses + this.badResponses + this.failedResponses
+  }
 }
