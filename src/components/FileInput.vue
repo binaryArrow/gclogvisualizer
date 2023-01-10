@@ -10,17 +10,14 @@
         </a-button>
       </a-upload>
       <div v-if="gcLogFiles.contents.length > 0 " v-for="content of gcLogFiles.contents">
-        <div id="log-file-element">
-          {{ content.name }}
-          <a>
-            <font-awesome-icon id="move-down" :icon="['fas', 'arrow-down']" @click="moveGcDown(content.name)" />
-          </a>
-          <a>
-            <font-awesome-icon id="move-up" :icon="['fas', 'arrow-up']" @click="moveGcLogUp(content.name)" />
-          </a>
-          <a>
-            <font-awesome-icon id="delete" :icon="['fas', 'trash']" @click="removeGCLogEntry(content)" />
-          </a>
+        <div id="log-file-element-container">
+          <div id="log-file-element" :style="content.style" @click="activateGCLogfileForSwap(content.index)">
+            {{ content.index + 1 }}-{{ content.name }}
+          </div>
+          <font-awesome-icon v-if="content.active && gcLogFiles.actives === 2" id="swap"
+                             :icon="['fas', 'repeat']" @click="swapGCs" />
+          <font-awesome-icon v-if="gcLogFiles.actives === 0" id="delete" :icon="['fas', 'trash']"
+                             @click="removeGCLogEntry(content.index)" />
         </div>
       </div>
       <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="gcLogFiles.createTotalStwChart()">
@@ -37,17 +34,12 @@
         </a-button>
       </a-upload>
       <div v-if="requestLogFiles.contents.length > 0 " v-for="content of requestLogFiles.contents">
-        <div id="log-file-element">
-          {{ content.name }}
-          <a>
-            <font-awesome-icon id="move-down" :icon="['fas', 'arrow-down']" @click="moveRequestDown(content.name)" />
-          </a>
-          <a>
-            <font-awesome-icon id="move-up" :icon="['fas', 'arrow-up']" @click="moveRequestUp(content.name)" />
-          </a>
-          <a>
-            <font-awesome-icon id="delete" :icon="['fas', 'trash']" @click="removeRequestLogEntry(content)" />
-          </a>
+        <div id="log-file-element-container">
+          <div id="log-file-element" :style="content.style" @click="activateRequestLogFileForSwap(content.index)">
+            {{content.index + 1}} - {{ content.name }}
+          </div>
+          <font-awesome-icon v-if="content.active && requestLogFiles.actives === 2" id="swap" :icon="['fas', 'repeat']" @click="swapRequests()" />
+          <font-awesome-icon v-if="requestLogFiles.actives === 0" id="delete" :icon="['fas', 'trash']" @click="removeRequestLogEntry(content.index)" />
         </div>
       </div>
       <a-button v-if="requestLogFiles.contents.length > 0 " class="plot-button"
@@ -71,6 +63,7 @@ const fileList = ref();
 const requestLogFiles = requestLogStore();
 const requestsLogList = ref();
 
+
 onMounted(() => {
   gcLogFiles.$onAction((context) => {
     if (context.name === "lastEntryDeletedEvent")
@@ -83,37 +76,41 @@ onMounted(() => {
 });
 
 // returning false to disable default POST fetch
+// GC LOG STUFF
 function addNewGCLogEntry(file: any) {
   gcLogFiles.addNewEntry(file);
   return false;
 }
 
-function removeGCLogEntry(file: any) {
-  gcLogFiles.removeEntry(file.name);
+function removeGCLogEntry(index: number) {
+  gcLogFiles.removeEntry(index);
 }
 
-function moveGcLogUp(name: string) {
-  gcLogFiles.moveUp(name)
-}
-function moveGcDown(name: string) {
-  gcLogFiles.moveDown(name)
+function activateGCLogfileForSwap(index: number) {
+  gcLogFiles.activate(index);
 }
 
+function swapGCs() {
+  gcLogFiles.swapGC();
+}
+
+// Request log stuff
 function addNewRequestLogEntry(file: any) {
   requestLogFiles.addNewEntry(file);
   return false;
 }
 
-function removeRequestLogEntry(file: any) {
-  requestLogFiles.removeEntry(file.name);
+function removeRequestLogEntry(index: number) {
+  requestLogFiles.removeEntry(index);
+}
+function activateRequestLogFileForSwap(index: number) {
+  requestLogFiles.activate(index);
 }
 
-function moveRequestDown(name:string) {
-  requestLogFiles.moveDown(name)
+function swapRequests() {
+  requestLogFiles.swapRequestLogFiles();
 }
-function moveRequestUp(name:string) {
-  requestLogFiles.moveUp(name)
-}
+
 </script>
 
 <style>
@@ -129,16 +126,27 @@ function moveRequestUp(name:string) {
   background-color: #efefef;
   border-radius: 8px;
 }
-#log-file-element:hover{
-  background-color: #dad5d5;
+
+#log-file-element:hover {
+  color: #1c91f5;
 }
 
 #request-log, #gc-log {
   text-align: center;
 }
 
-#move-up, #move-down, #delete {
-  padding: 0 2px 0;
+#swap, #delete {
+  cursor: pointer;
   color: #40a9ff;
+  padding-top: 14px;
+}
+
+#swap:hover, #delete:hover {
+  color: #5fa9e7;
+}
+
+#log-file-element-container {
+  display: flex;
+  justify-content: center;
 }
 </style>
