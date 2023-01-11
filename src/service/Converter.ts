@@ -79,4 +79,14 @@ export class Converter {
 
     );
   }
+
+  static createResponseSummary(responseArray: RequestAnalyzedFile[]): RequestAnalyzedFile[] {
+    const bestResponse = responseArray.find(it => it.bestResponses == Math.max(...responseArray.map(it => it.bestResponses)))
+    const goodResponse = responseArray.find(it => it.goodResponses == Math.max(...responseArray.map(it => it.goodResponses)))
+    const badResponse = responseArray.find(it => it.badResponses == Math.max(...responseArray.map(it => it.badResponses)))
+    const failedResponse = responseArray.find(it => it.failedResponses == Math.max(...responseArray.map(it => it.failedResponses)))
+
+    // @ts-ignore there will always be an entry
+    return [bestResponse, goodResponse, badResponse, failedResponse]
+  }
 }

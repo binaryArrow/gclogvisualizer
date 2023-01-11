@@ -87,7 +87,7 @@ export class FileAnalyzer {
   }
 
   // request stuff
-  static analyzeRequestFile(logs: string[], fileName: string): RequestAnalyzedFile | null {
+  static analyzeRequestFile(logs: string[], fileName: string, index: number): RequestAnalyzedFile | null {
     if(!logs[0].includes('RUN'))
       return null
     const relevantOKLogs = logs.filter(line => line.includes('OK'))
@@ -106,7 +106,9 @@ export class FileAnalyzer {
         goodResponses++
       else badResponses ++;
     })
-    return new RequestAnalyzedFile(fileName, bestResponses,goodResponses, badResponses, relevantKOLogs.length)
+    let result = new RequestAnalyzedFile(fileName, bestResponses,goodResponses, badResponses, relevantKOLogs.length)
+    result.index = index
+    return result
   }
 
 

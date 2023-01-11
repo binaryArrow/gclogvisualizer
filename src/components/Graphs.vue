@@ -55,7 +55,7 @@ onMounted(() => {
       requestFilesAnalyzed.value = [];
       let failed = false;
       requestLogFiles.contents.forEach(contentEntry => {
-        const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name);
+        const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name, contentEntry.index);
         if (valid !== null) {
           requestFilesAnalyzed.value.push(valid);
         } else {
@@ -63,8 +63,10 @@ onMounted(() => {
           failed = true;
         }
       });
-      if (!failed)
-        createReqChart(Converter.convertForD3Use(requestFilesAnalyzed.value));
+      if (!failed){
+        const summary = Converter.createResponseSummary(requestFilesAnalyzed.value)
+        createReqChart(Converter.convertForD3Use(requestFilesAnalyzed.value), summary);
+      }
     }
   });
 });
@@ -223,7 +225,7 @@ function createHistogram(data: number[], gcName: string[], minMaxInfo: GcAnalyze
 
 }
 
-function createReqChart(data: any[]) {
+function createReqChart(data: any[], summary: RequestAnalyzedFile[]) {
 
   let margin = { top: 10, right: 30, bottom: 30, left: 40 },
     width = 480 - margin.left - margin.right,
@@ -256,6 +258,65 @@ function createReqChart(data: any[]) {
     .text("Responses")
     .attr("font-size", 12)
     .attr("fill", "black");
+
+  summary.forEach((result, index) => {
+
+    let color, name, value
+
+    switch (index) {
+      case 0: {
+        color = "#6ca142";
+        name = "Max Quantity of Response Time < 800ms";
+        value = result.bestResponses
+        break;
+      }
+      case 1: {
+        color ="#e0d558";
+        name = "Max Quantity of Response Time <1200ms";
+        value = result.goodResponses
+        break;
+      }
+      case 2: {
+        color = "#e59058"
+        name = "Max  Quantity of Response Time > 1200ms ";
+        value = result.badResponses
+        break;
+      }
+      case 3: {
+        color = "#ea4a4a"
+        name = "Max  Quantity of Failed Requests";
+        value = result.failedResponses
+        break;
+      }
+    }
+
+    let info = d3.select("#req-graph")
+      .insert("div")
+      .style("width", "20px")
+      .style("height", "50px")
+      .style("background-color", `${color}`)
+      .style("margin", "10px");
+    let info2 = info
+      .append("div")
+      .style("width", "600px")
+      .style("height", "80px")
+      .style("margin", "10px")
+      .style('display', 'flex')
+      .style('justify-content', 'left')
+
+
+    info2.append("text")
+      .text(`${name}=  `)
+      .attr("font-size", 12)
+      .attr("fill", "black")
+      .style("margin-left", "14px");
+
+    info2.append("text")
+      .text(`${value} at Test Number ${result.index+1}`)
+      .attr("font-size", 12)
+      .attr("fill", "black");
+
+  });
 
   // List of subgroups = header of the csv files = soil condition here
   const subgroups = ["bestResponses", "goodResponses", "badResponses", "failedResponses"];
