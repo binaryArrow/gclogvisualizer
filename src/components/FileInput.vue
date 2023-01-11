@@ -28,9 +28,12 @@
       <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="gcLogFiles.createTotalStwChart()">
         Create STW Graph
       </a-button>
-      <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="gcLogFiles.deleteAll()">
+      <a-button v-if="gcLogFiles.contents.length > 0 " class="plot-button" @click="showDeleteAllGcModal">
         Delete All
       </a-button>
+      <a-modal v-model:visible="deleteModalVisibleGc" title="Basic Modal" @ok="handleOkGc">
+        <p>Delete All Log files from the list?</p>
+      </a-modal>
     </div>
     <div id="request-log">
       <a-upload v-model:file-list="requestsLogList" :multiple="true" name="uploadRequestLog"
@@ -61,9 +64,12 @@
                 @click="requestLogFiles.createRequestChart()">
         Create Response Graph
       </a-button>
-      <a-button v-if="requestLogFiles.contents.length > 0 " class="plot-button" @click="requestLogFiles.deleteAll()">
+      <a-button v-if="requestLogFiles.contents.length > 0 " class="plot-button" @click="showDeleteAllReqModal">
         Delete All
       </a-button>
+      <a-modal v-model:visible="deleteModalVisibleReq" title="Basic Modal" @ok="handleOkReq">
+        <p>Delete All Log files from the list?</p>
+      </a-modal>
     </div>
   </div>
 </template>
@@ -80,6 +86,25 @@ const fileList = ref();
 // for request logs
 const requestLogFiles = requestLogStore();
 const requestsLogList = ref();
+
+const deleteModalVisibleReq = ref<boolean>(false)
+const deleteModalVisibleGc = ref<boolean>(false)
+
+function showDeleteAllReqModal(){
+  deleteModalVisibleReq.value = true
+}
+function showDeleteAllGcModal() {
+  deleteModalVisibleGc.value = true
+}
+function handleOkReq() {
+  requestLogFiles.deleteAll()
+  deleteModalVisibleReq.value = false
+}
+
+function handleOkGc() {
+  gcLogFiles.deleteAll()
+  deleteModalVisibleGc.value = false
+}
 
 
 // returning false to disable default POST fetch

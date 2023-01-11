@@ -32,16 +32,19 @@ onMounted(() => {
       gcFilesAnalyzed.value = [];
       let failed = false;
       gcLogFiles.contents.forEach(contentEntry => {
-        if (FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name) !== null)
+        if (FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name) !== null) {
           gcFilesAnalyzed.value.push(FileAnalyzer.analyzeGCFile(contentEntry.content, contentEntry.name)!);
-        else {
+        } else {
           message.error(`Unknown Garbage Collector Log of ${contentEntry.name}`);
           failed = true;
         }
       });
       if (!failed) {
-        createHistogram(gcFilesAnalyzed.value.sort((a,b)=>a.sortNumber - b.sortNumber).map(it => it.stwTotalTime),
-          gcFilesAnalyzed.value.sort((a,b)=>a.sortNumber - b.sortNumber).map(it => it.gcName));
+        // sort by sortNumber
+        const sorted = gcFilesAnalyzed.value.sort((a, b) => a.sortNumber - b.sortNumber);
+        // create minMax
+        const minMaxGcs = Converter.createMinMaxGcInfo(sorted);
+        createHistogram(sorted.map(it => it.stwTotalTime), sorted.map(it => it.gcName), minMaxGcs);
       }
     }
   });
@@ -53,9 +56,9 @@ onMounted(() => {
       let failed = false;
       requestLogFiles.contents.forEach(contentEntry => {
         const valid = FileAnalyzer.analyzeRequestFile(contentEntry.content, contentEntry.name);
-        if (valid !== null)
+        if (valid !== null) {
           requestFilesAnalyzed.value.push(valid);
-        else {
+        } else {
           message.error(`Unknown File ${contentEntry.name}, use Gatling Logs`);
           failed = true;
         }
@@ -66,7 +69,7 @@ onMounted(() => {
   });
 });
 
-function createHistogram(data: number[], gcName: string[]) {
+function createHistogram(data: number[], gcName: string[], minMaxInfo: GcAnalyzedFile[]) {
   // svg attributes
   let margin = { top: 10, right: 30, bottom: 30, left: 40 },
     width = 480 - margin.left - margin.right,
@@ -79,6 +82,80 @@ function createHistogram(data: number[], gcName: string[]) {
     .append("g")
     .attr("transform",
       "translate(" + 80 + ")");
+
+  minMaxInfo.forEach(gc => {
+    console.log(gc);
+    // create div with GC info
+    let color, name, min, max;
+
+    switch (gc.gcName) {
+      case "Parallel GC": {
+        color = "#488c7d";
+        name = gc.gcName;
+        min = gc.minNumber;
+        max = gc.maxNumber;
+        break;
+      }
+      case "Serial GC": {
+        color = "#598c48";
+        name = gc.gcName;
+        min = gc.minNumber;
+        max = gc.maxNumber;
+        break;
+      }
+      case "Shenandoah GC": {
+        color = "#69488c";
+        name = gc.gcName;
+        min = gc.minNumber;
+        max = gc.maxNumber;
+        break;
+      }
+      case "G1 GC": {
+        color = "#48588c";
+        name = gc.gcName;
+        min = gc.minNumber;
+        max = gc.maxNumber;
+        break;
+      }
+      default: {
+        color = "#c99652";
+        name = "unknown GC";
+        min = 0;
+        max = 0;
+      }
+    }
+
+    let info = d3.select("#graph")
+      .insert("div")
+      .style("width", "20px")
+      .style("height", "50px")
+      .style("background-color", `${color}`)
+      .style("margin", "10px");
+    let info2 = info
+      .append("div")
+      .style("width", "500px")
+      .style("height", "80px")
+      .style("margin", "10px")
+      .style('display', 'flex')
+      .style('justify-content', 'left')
+
+
+    info2.append("text")
+      .text(`${name}=  `)
+      .attr("font-size", 12)
+      .attr("fill", "black")
+      .style("margin-left", "14px");
+
+    info2.append("text")
+      .text(`MAX: ${max}(ms) , ${(max! / 1000).toFixed(1)}(s)`)
+      .attr("font-size", 12)
+      .attr("fill", "black");
+
+    info2.append("text")
+      .text(`MIN: ${min}(ms) , ${(min! / 1000).toFixed(1)}(s)`)
+      .attr("font-size", 12)
+      .attr("fill", "black");
+  });
 
   // label x axis
   svg.append("text")
@@ -122,7 +199,7 @@ function createHistogram(data: number[], gcName: string[]) {
     .call(d3.axisLeft(y));
 
 // Bars
-  svg.selectAll("mybar")
+  svg.selectAll("bar")
     .data(data)
     .join("rect")
     .attr("x", (d, i) => x((i + 1).toString()) as unknown as string)
@@ -174,7 +251,7 @@ function createReqChart(data: any[]) {
     .attr("text-anchor", "end")
     .attr("y", -50)
     .attr("dy", ".50em")
-    .attr("x", -100)
+    .attr("x", -140)
     .attr("transform", "rotate(-90)")
     .text("Responses")
     .attr("font-size", 12)
@@ -239,10 +316,6 @@ function createReqChart(data: any[]) {
 
 <style scoped>
 #graph {
-  margin-top: 20px;
-}
-
-#heatmap {
   margin-top: 20px;
 }
 

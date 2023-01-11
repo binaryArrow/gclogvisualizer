@@ -3,7 +3,9 @@ export class GcAnalyzedFile {
   fileName: string
   stwTotalTime: number
   sortNumber: number
-  constructor(gcName: string, fileName: string, stwTotalTime: number) {
+  maxNumber?: number
+  minNumber?: number
+  constructor(gcName: string, fileName: string, stwTotalTime: number, maxNumber?: number, minNumber?: number) {
     this.gcName = gcName
     this.fileName = fileName
     this.stwTotalTime = stwTotalTime
@@ -18,6 +20,8 @@ export class GcAnalyzedFile {
         break;
       default: this.sortNumber = 4
     }
+    this.maxNumber = maxNumber
+    this.minNumber = minNumber
   }
 
 }
