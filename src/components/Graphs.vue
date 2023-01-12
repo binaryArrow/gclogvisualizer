@@ -85,6 +85,8 @@ function createHistogram(data: number[], gcName: string[], minMaxInfo: GcAnalyze
     .attr("transform",
       "translate(" + 80 + ")");
 
+  const mean = d3.mean(data)
+
   minMaxInfo.forEach(gc => {
     console.log(gc);
     // create div with GC info
@@ -158,6 +160,21 @@ function createHistogram(data: number[], gcName: string[], minMaxInfo: GcAnalyze
       .attr("font-size", 12)
       .attr("fill", "black");
   });
+
+
+  d3.select("#graph")
+    .append("div")
+    .style("width", "500px")
+    .style("height", "80px")
+    .style("margin", "10px")
+    .style('display', 'flex')
+    .style('justify-content', 'left')
+    .append("text")
+    .text(`MEAN= ${mean} ms, ${(mean!/60000).toFixed(2)} min`)
+    .attr("font-size", 12)
+    .attr("fill", "black")
+    .style("margin-left", "14px");
+
 
   // label x axis
   svg.append("text")
