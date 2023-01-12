@@ -15,8 +15,8 @@ import { onMounted, ref } from "vue";
 import { FileAnalyzer } from "@/service/FileAnalyzer";
 import { message } from "ant-design-vue";
 import * as d3 from "d3";
-import { GcAnalyzedFile } from "@/models/GcAnalyzedFile";
-import { RequestAnalyzedFile } from "@/models/RequestAnalyzedFile";
+import type { GcAnalyzedFile } from "@/models/GcAnalyzedFile";
+import type { RequestAnalyzedFile } from "@/models/RequestAnalyzedFile";
 import { Converter } from "@/service/Converter";
 
 const gcLogFiles = gcLogStore();
