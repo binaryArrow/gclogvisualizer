@@ -7,7 +7,7 @@ To run it locally one need node and npm. simply run npm dev script to run it loc
 ## Usage
 
 Upload multiple Garbage Collector logs by clicking on *Upload GC log* and click on *create STW Graph* to 
-show the corresponding Graph. Following Garbage Collectors are supported: \
+show the corresponding Graph. Following Garbage Collectors are supported: 
 - Shenandoah GC
 - Parallel GC
 - Serial GC
