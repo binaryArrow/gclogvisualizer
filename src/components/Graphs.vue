@@ -353,8 +353,8 @@ function createReqChart(data: any[], summary: RequestAnalyzedFile[]) {
 
   const maxCount = requestFilesAnalyzed.value[0].returnTotalReqCount();
   // Add Y axis
-  const y = d3.scaleLinear()
-    .domain([0, maxCount])
+  const y = d3.scaleLog()
+    .domain([10, maxCount])
     .range([height, 0]);
   svg.append("g")
     .call(d3.axisLeft(y));
